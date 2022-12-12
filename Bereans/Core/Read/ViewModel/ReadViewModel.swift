@@ -31,7 +31,7 @@ class ReadViewModel: ObservableObject {
     
     // languagePicker
     var languageList = ["한글", "English"]
-    var krVersion = ["개역개정", "개역한글", "표준새번역", "현대인의성경"]
+    var krVersion = ["개역개정"]
     var engVersion = ["New International Version", "King James Version", "New King James Version"]
     
     @Published var showPickLanguage = ""

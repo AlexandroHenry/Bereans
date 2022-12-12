@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA27B69E2944AADF00566703 /* KRV.json in Resources */ = {isa = PBXBuildFile; fileRef = AA27B69D2944AADF00566703 /* KRV.json */; };
+		AA27B6A02946D41D00566703 /* FooterButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA27B69F2946D41D00566703 /* FooterButtonView.swift */; };
 		AA59F162294218A4002B4D77 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59F161294218A4002B4D77 /* MainViewModel.swift */; };
 		AA59F16729421C25002B4D77 /* ReadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59F16629421C25002B4D77 /* ReadView.swift */; };
 		AA59F16929421CBA002B4D77 /* ReadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59F16829421CBA002B4D77 /* ReadViewModel.swift */; };
@@ -23,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		AA27B69D2944AADF00566703 /* KRV.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = KRV.json; sourceTree = "<group>"; };
+		AA27B69F2946D41D00566703 /* FooterButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterButtonView.swift; sourceTree = "<group>"; };
 		AA59F161294218A4002B4D77 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		AA59F16629421C25002B4D77 /* ReadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadView.swift; sourceTree = "<group>"; };
 		AA59F16829421CBA002B4D77 /* ReadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadViewModel.swift; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				AA59F16629421C25002B4D77 /* ReadView.swift */,
+				AA27B69F2946D41D00566703 /* FooterButtonView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -241,6 +244,7 @@
 				AAF645A82941E0E400F0F2F9 /* MainView.swift in Sources */,
 				AA59F1732942D631002B4D77 /* ModelData.swift in Sources */,
 				AA59F16929421CBA002B4D77 /* ReadViewModel.swift in Sources */,
+				AA27B6A02946D41D00566703 /* FooterButtonView.swift in Sources */,
 				AA59F16F2942D535002B4D77 /* Bible.swift in Sources */,
 				AA59F16729421C25002B4D77 /* ReadView.swift in Sources */,
 				AAF645942941E06700F0F2F9 /* BereansApp.swift in Sources */,
@@ -379,15 +383,17 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.alaxhenry.Bereans;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -417,15 +423,17 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.alaxhenry.Bereans;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;

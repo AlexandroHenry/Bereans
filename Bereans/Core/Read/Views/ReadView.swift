@@ -52,7 +52,9 @@ struct ReadView: View {
                     VStack {
                         bibleChapterView()
                             .id(Self.topId)
-                            .padding()
+                            .padding(.top, 80)
+                            .padding(.bottom, 100)
+                            .padding(.horizontal, 10)
                     }
                     .onChange(of: self.chapNum, perform: { newValue in
                         withAnimation {
@@ -68,11 +70,11 @@ struct ReadView: View {
                             }
                             .onEnded { value in
                             
-                                if self.draggedOffset.width >= 10 && readVM.currentChapter > 1 {
+                                if self.draggedOffset.width >= 1 && readVM.currentChapter > 1 {
                                     proxyReader.scrollTo(Self.topId, anchor: .top)
                                     readVM.currentChapter -= 1
                                     self.draggedOffset = CGSize.zero
-                                } else if self.draggedOffset.width <= -10 && readVM.currentChapter < chapterCounter(currentBook: readVM.currentBook) {
+                                } else if self.draggedOffset.width <= -1 && readVM.currentChapter < chapterCounter(currentBook: readVM.currentBook) {
                                     proxyReader.scrollTo(Self.topId, anchor: .top)
                                     readVM.currentChapter += 1
                                     self.draggedOffset = CGSize.zero
@@ -90,10 +92,10 @@ struct ReadView: View {
                 headerView()
                 Spacer()
                 footerView()
+                    .padding(.bottom)
             }
             
         }
-        .frame(width: size.width * 0.95)
     }
     
     @ViewBuilder
@@ -101,14 +103,12 @@ struct ReadView: View {
         VStack {
             Text("\(readVM.currentBook) \(readVM.currentChapter)")
                 .font(.system(size: 40))
-                .padding(.top, 50)
                 .multilineTextAlignment(.center)
-                .padding(.top, 50)
+                .padding(.bottom, 40)
             
-            VStack(spacing: 10) {
+            VStack(spacing: 20) {
                 
                 ForEach(filteredBible, id: \.self) { chapter in
-
                     HStack(spacing: 20) {
 
                         VStack {
@@ -117,7 +117,6 @@ struct ReadView: View {
                                 .fontWeight(.semibold)
                                 .foregroundColor(.gray)
 
-
                             Spacer()
                         }
 
@@ -125,15 +124,13 @@ struct ReadView: View {
                             .font(.system(size: readVM.fontSize))
                             .foregroundColor(.primary)
                             .lineSpacing(20)
+                            .fontWeight(.bold)
 
                         Spacer()
                     }
                     .id(chapter)
-                    .padding(.bottom, 10)
                 }
             }
-            .padding()
-            .padding(.bottom, 100)
         }
     }
     
@@ -148,8 +145,6 @@ struct ReadView: View {
                 Text("\(readVM.currentLanguage)")
                     .font(.system(size: 20).bold())
                     .foregroundColor(.pink)
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 5)
             }
             .background(.primary)
             .buttonStyle(.bordered)
@@ -167,8 +162,6 @@ struct ReadView: View {
                 Text("\(readVM.currentBook) \(readVM.currentChapter)")
                     .font(.system(size: 20).bold())
                     .foregroundColor(.pink)
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 5)
             }
             .background(.primary)
             .buttonStyle(.bordered)
@@ -185,89 +178,54 @@ struct ReadView: View {
     @ViewBuilder
     func footerView() -> some View {
         HStack(spacing: 20) {
-            
             Spacer()
+            footerButton(image: "arrow.left", purpose: "prevChapter")
+            footerButton(image: "textformat.size.smaller", purpose: "reduceFontSize")
+            footerButton(image: "magnifyingglass", purpose: "search")
+            footerButton(image: "textformat.size.larger", purpose: "increaseFontSize")
+            footerButton(image: "arrow.right", purpose: "nextChapter")
+            Spacer()
+        }
+    }
+    
+    @ViewBuilder
+    func footerButton(image: String, purpose: String) -> some View {
+        Button {
             
-            Button {
-                if readVM.currentChapter > 1{
+            switch purpose {
+            case "prevChapter":
+                if readVM.currentChapter > 1 {
                     readVM.currentChapter -= 1
-                    
-                    chapNum = readVM.currentChapter
                 }
-            } label: {
-                Image(systemName: "arrow.left")
-                    .padding(10)
-                    .font(.system(size: 20).bold())
-                    .foregroundColor(.pink)
-            }
-            .background(.primary.opacity(0.9))
-            .buttonStyle(.bordered)
-            .clipShape(Circle())
-            .shadow(radius: 20)
-            
-            Button {
+            case "reduceFontSize":
                 if readVM.fontSize > 15 {
                     readVM.fontSize -= 5
                 }
-            } label: {
-                Image(systemName: "textformat.size.smaller")
-                    .padding(10)
-                    .font(.system(size: 20).bold())
-                    .foregroundColor(.pink)
-            }
-            .background(.primary)
-            .buttonStyle(.bordered)
-            .clipShape(Circle())
-            .shadow(radius: 20)
-            
-            Button {
-                
-            } label: {
-                Image(systemName: "magnifyingglass")
-                    .padding(10)
-                    .font(.system(size: 20).bold())
-                    .foregroundColor(.pink)
-            }
-            .background(.primary)
-            .buttonStyle(.bordered)
-            .clipShape(Circle())
-            .shadow(radius: 20)
-            
-            Button {
+            case "search":
+                print("search Button Pressed")
+            case "increaseFontSize":
                 if readVM.fontSize < 40 {
                     readVM.fontSize += 5
                 }
-            } label: {
-                Image(systemName: "textformat.size.larger")
-                    .padding(10)
-                    .font(.system(size: 20).bold())
-                    .foregroundColor(.pink)
-            }
-            .background(.primary)
-            .buttonStyle(.bordered)
-            .clipShape(Circle())
-            .shadow(radius: 20)
-            
-            Button {
+            case "nextChapter":
                 if readVM.currentChapter < chapterCounter(currentBook: readVM.currentBook){
                     readVM.currentChapter += 1
-                    
                     chapNum = readVM.currentChapter
                 }
-            } label: {
-                Image(systemName: "arrow.right")
-                    .padding(10)
-                    .font(.system(size: 20).bold())
-                    .foregroundColor(.pink)
+            default:
+                print("default footer button")
             }
-            .background(.primary)
-            .buttonStyle(.bordered)
-            .clipShape(Circle())
-            .shadow(radius: 20)
+           
             
-            Spacer()
+        } label: {
+            Image(systemName: image)
+                .font(.system(size: 20).bold())
+                .foregroundColor(.pink)
+                .padding(15)
         }
-        .padding(.vertical, 20)
+        .background(Color.primary.opacity(0.8))
+        .clipShape(Circle())
+        .shadow(radius: 10)
     }
     
     @ViewBuilder
@@ -278,7 +236,7 @@ struct ReadView: View {
                 
                 HStack {
                     Text("구약성경")
-                        .font(.system(size: 20).bold())
+                        .font(.system(size: 25).bold())
                         
                     Spacer()
                     
@@ -312,6 +270,7 @@ struct ReadView: View {
                         } label: {
                             HStack {
                                 Text(item)
+                                    .font(.system(size: 20).bold())
                                 
                                 Spacer()
                                 
@@ -337,7 +296,6 @@ struct ReadView: View {
                                     } label: {
                                         Text("\(chapter)")
                                             .foregroundColor(.primary)
-                                            .padding(15)
                                     }
                                     .frame(width: 60, height: 60)
                                     .background(.primary.opacity(0.2))
@@ -352,7 +310,7 @@ struct ReadView: View {
                 
                 HStack {
                     Text("신약성경")
-                        .font(.system(size: 20).bold())
+                        .font(.system(size: 25).bold())
                         
                     Spacer()
                     
@@ -413,7 +371,6 @@ struct ReadView: View {
                                     } label: {
                                         Text("\(chapter)")
                                             .foregroundColor(.primary)
-                                            .padding(15)
                                     }
                                     .frame(width: 60, height: 60)
                                     .background(.primary.opacity(0.2))
@@ -425,10 +382,9 @@ struct ReadView: View {
                         }
                     }
                 }
-                
             }
-            .padding()
         }
+        .padding()
     }
     
     @ViewBuilder
@@ -438,7 +394,7 @@ struct ReadView: View {
                 ForEach(readVM.languageList, id: \.self) { language in
                     HStack {
                         Text(language)
-                            .font(.system(size: 20).bold())
+                            .font(.system(size: 25).bold())
                             
                         Spacer()
                         
@@ -473,8 +429,8 @@ struct ReadView: View {
                     
                 }
             }
-            .padding()
         }
+        .padding()
     }
     
     func chapterCounter(currentBook: String) -> Int {
