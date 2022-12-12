@@ -252,30 +252,36 @@ struct ReadView: View {
                 .onTapGesture {
                     withAnimation {
                         readVM.showOldList.toggle()
+                        
+                        if readVM.showOldList {
+                            readVM.showSelectedBook = ""
+                            readVM.showChapterList = false
+                        }
                     }
                 }
                 
                 if readVM.showOldList {
                     ForEach(readVM.old_testament, id: \.self) { item in
                         Button {
-                            
                             if readVM.showSelectedBook == "" {
                                 readVM.showSelectedBook = item
                                 readVM.showChapterList.toggle()
-                            } else {
+                            } else if readVM.showSelectedBook != item && readVM.showSelectedBook != "" {
+                                readVM.showSelectedBook = item
+                                readVM.showChapterList = true
+                            } else if readVM.showSelectedBook == item {
                                 readVM.showSelectedBook = ""
-                                readVM.showChapterList.toggle()
+                                readVM.showChapterList = false
                             }
-                            
                         } label: {
                             HStack {
                                 Text(item)
-                                    .font(.system(size: 20).bold())
                                 
                                 Spacer()
                                 
                                 Image(systemName: readVM.showSelectedBook == item ? "chevron.down" : "chevron.right")
                             }
+                            .font(.system(size: 20).bold())
                             .foregroundColor(readVM.showSelectedBook == item ? .pink : .primary)
                         }
                         
@@ -314,7 +320,7 @@ struct ReadView: View {
                         
                     Spacer()
                     
-                    if readVM.showOldList {
+                    if readVM.showNewList {
                         Image(systemName: "chevron.down")
                             .foregroundColor(.pink)
                     } else {
@@ -326,21 +332,27 @@ struct ReadView: View {
                 .onTapGesture {
                     withAnimation {
                         readVM.showNewList.toggle()
+                        
+                        if readVM.showNewList {
+                            readVM.showSelectedBook = ""
+                            readVM.showChapterList = false
+                        }
                     }
                 }
                 
                 if readVM.showNewList {
                     ForEach(readVM.new_testament, id: \.self) { item in
                         Button {
-                            
                             if readVM.showSelectedBook == "" {
                                 readVM.showSelectedBook = item
                                 readVM.showChapterList.toggle()
-                            } else {
+                            } else if readVM.showSelectedBook != item && readVM.showSelectedBook != "" {
+                                readVM.showSelectedBook = item
+                                readVM.showChapterList = true
+                            } else if readVM.showSelectedBook == item {
                                 readVM.showSelectedBook = ""
-                                readVM.showChapterList.toggle()
+                                readVM.showChapterList = false
                             }
-                            
                         } label: {
                             HStack {
                                 Text(item)
@@ -399,14 +411,17 @@ struct ReadView: View {
                         Spacer()
                         
                         Image(systemName: readVM.showPickLanguage == language ? "chevron.down" : "chevron.right")
-                            .foregroundColor(.pink)
+                            
                         
                     }
+                    .foregroundColor(readVM.showPickLanguage == language ? .pink : .primary)
                     .onTapGesture {
                         withAnimation {
                             if readVM.showPickLanguage == "" {
                                 readVM.showPickLanguage = language
-                            } else {
+                            } else if readVM.showPickLanguage != "" && readVM.showPickLanguage != language {
+                                readVM.showPickLanguage = language
+                            } else if readVM.showPickLanguage == language {
                                 readVM.showPickLanguage = ""
                             }
                         }
@@ -417,12 +432,15 @@ struct ReadView: View {
                         ForEach(readVM.showPickLanguage == "한글" ? readVM.krVersion : readVM.engVersion, id: \.self) { version in
                             Button {
                                 readVM.currentVersion = version
+                                readVM.showPickLanguage = ""
                                 showingLanguagePicker = false
                             } label : {
                                 HStack {
                                     Text(version)
+                                        .foregroundColor(.primary)
                                     Spacer()
                                 }
+                                
                             }
                         }
                     }
