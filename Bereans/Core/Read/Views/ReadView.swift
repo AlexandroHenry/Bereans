@@ -19,6 +19,7 @@ struct ReadView: View {
     @State private var showingLanguagePicker = false
     
     @State private var chapNum: Int?
+    @State private var selectingBook: String?
     
     var filteredBible: [Bible] {
         switch readVM.currentVersion {
@@ -101,7 +102,7 @@ struct ReadView: View {
     @ViewBuilder
     func bibleChapterView() -> some View {
         VStack {
-            Text("\(readVM.currentBook) \(readVM.currentChapter)")
+            Text("\(currentBook(book: readVM.currentBook)) \(readVM.currentChapter)")
                 .font(.system(size: 40))
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 40)
@@ -159,7 +160,7 @@ struct ReadView: View {
                     showingBookPicker.toggle()
                 }
             } label: {
-                Text("\(readVM.currentBook) \(readVM.currentChapter)")
+                Text("\(currentBook(book: readVM.currentBook)) \(readVM.currentChapter)")
                     .font(.system(size: 20).bold())
                     .foregroundColor(.pink)
             }
@@ -235,7 +236,7 @@ struct ReadView: View {
             VStack(alignment: .leading, spacing: 20) {
                 
                 HStack {
-                    Text("구약성경")
+                    Text(readVM.currentLanguage == "한글" ? "구약성경" : "Old Testament")
                         .font(.system(size: 25).bold())
                         
                     Spacer()
@@ -252,7 +253,7 @@ struct ReadView: View {
                 .onTapGesture {
                     withAnimation {
                         readVM.showOldList.toggle()
-                        
+                        readVM.showNewList = false
                         if readVM.showOldList {
                             readVM.showSelectedBook = ""
                             readVM.showChapterList = false
@@ -261,35 +262,37 @@ struct ReadView: View {
                 }
                 
                 if readVM.showOldList {
-                    ForEach(readVM.old_testament, id: \.self) { item in
+                    ForEach(OldTestament.allCases, id: \.self) { item in
                         Button {
                             if readVM.showSelectedBook == "" {
-                                readVM.showSelectedBook = item
+                                readVM.showSelectedBook = item.rawValue
                                 readVM.showChapterList.toggle()
-                            } else if readVM.showSelectedBook != item && readVM.showSelectedBook != "" {
-                                readVM.showSelectedBook = item
+                            } else if readVM.showSelectedBook != item.rawValue && readVM.showSelectedBook != "" {
+                                readVM.showSelectedBook = item.rawValue
                                 readVM.showChapterList = true
-                            } else if readVM.showSelectedBook == item {
+                            } else if readVM.showSelectedBook == item.rawValue {
                                 readVM.showSelectedBook = ""
                                 readVM.showChapterList = false
                             }
+                            
                         } label: {
                             HStack {
-                                Text(item)
+                                Text(readVM.currentLanguage == "한글" ? item.korDescription() : item.rawValue)
                                 
                                 Spacer()
                                 
-                                Image(systemName: readVM.showSelectedBook == item ? "chevron.down" : "chevron.right")
+                                Image(systemName: readVM.showSelectedBook == item.rawValue ? "chevron.down" : "chevron.right")
                             }
                             .font(.system(size: 20).bold())
-                            .foregroundColor(readVM.showSelectedBook == item ? .pink : .primary)
+                            .foregroundColor(readVM.showSelectedBook == item.rawValue ? .pink : .primary)
                         }
                         
-                        if readVM.showSelectedBook == item && readVM.showChapterList {
+                        if readVM.showSelectedBook == item.rawValue && readVM.showChapterList {
                             
                             LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 5)) {
-                                ForEach(1...chapterCounter(currentBook: item), id: \.self) { chapter in
+                                ForEach(1...chapterCounter(currentBook: item.rawValue), id: \.self) { chapter in
                                     Button {
+                                        
                                         readVM.currentBook = readVM.showSelectedBook
                                         readVM.currentChapter = chapter
                                         
@@ -299,6 +302,8 @@ struct ReadView: View {
                                         readVM.showOldList = false
                                         readVM.showNewList = false
                                         showingBookPicker = false
+                                        
+                                        readVM.currentPart = "old"
                                     } label: {
                                         Text("\(chapter)")
                                             .foregroundColor(.primary)
@@ -315,7 +320,7 @@ struct ReadView: View {
                 }
                 
                 HStack {
-                    Text("신약성경")
+                    Text(readVM.currentLanguage == "한글" ? "신약성경" : "New Testament")
                         .font(.system(size: 25).bold())
                         
                     Spacer()
@@ -332,7 +337,7 @@ struct ReadView: View {
                 .onTapGesture {
                     withAnimation {
                         readVM.showNewList.toggle()
-                        
+                        readVM.showOldList = false
                         if readVM.showNewList {
                             readVM.showSelectedBook = ""
                             readVM.showChapterList = false
@@ -341,34 +346,37 @@ struct ReadView: View {
                 }
                 
                 if readVM.showNewList {
-                    ForEach(readVM.new_testament, id: \.self) { item in
+                    ForEach(NewTestament.allCases, id: \.self) { item in
                         Button {
                             if readVM.showSelectedBook == "" {
-                                readVM.showSelectedBook = item
+                                readVM.showSelectedBook = item.rawValue
                                 readVM.showChapterList.toggle()
-                            } else if readVM.showSelectedBook != item && readVM.showSelectedBook != "" {
-                                readVM.showSelectedBook = item
+                            } else if readVM.showSelectedBook != item.rawValue && readVM.showSelectedBook != "" {
+                                readVM.showSelectedBook = item.rawValue
                                 readVM.showChapterList = true
-                            } else if readVM.showSelectedBook == item {
+                            } else if readVM.showSelectedBook == item.rawValue {
                                 readVM.showSelectedBook = ""
                                 readVM.showChapterList = false
                             }
+                            
                         } label: {
                             HStack {
-                                Text(item)
+                                Text(readVM.currentLanguage == "한글" ? item.korDescription() : item.rawValue)
                                 
                                 Spacer()
                                 
-                                Image(systemName: readVM.showSelectedBook == item ? "chevron.down" : "chevron.right")
+                                Image(systemName: readVM.showSelectedBook == item.rawValue ? "chevron.down" : "chevron.right")
                             }
-                            .foregroundColor(readVM.showSelectedBook == item ? .pink : .primary)
+                            .font(.system(size: 20).bold())
+                            .foregroundColor(readVM.showSelectedBook == item.rawValue ? .pink : .primary)
                         }
                         
-                        if readVM.showSelectedBook == item && readVM.showChapterList {
+                        if readVM.showSelectedBook == item.rawValue && readVM.showChapterList {
                             
                             LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 5)) {
-                                ForEach(1...chapterCounter(currentBook: item), id: \.self) { chapter in
+                                ForEach(1...chapterCounter(currentBook: item.rawValue), id: \.self) { chapter in
                                     Button {
+                                        
                                         readVM.currentBook = readVM.showSelectedBook
                                         readVM.currentChapter = chapter
                                         
@@ -379,7 +387,7 @@ struct ReadView: View {
                                         readVM.showNewList = false
                                         showingBookPicker = false
                                         
-                                        
+                                        readVM.currentPart = "new"
                                     } label: {
                                         Text("\(chapter)")
                                             .foregroundColor(.primary)
@@ -411,7 +419,6 @@ struct ReadView: View {
                         Spacer()
                         
                         Image(systemName: readVM.showPickLanguage == language ? "chevron.down" : "chevron.right")
-                            
                         
                     }
                     .foregroundColor(readVM.showPickLanguage == language ? .pink : .primary)
@@ -431,6 +438,7 @@ struct ReadView: View {
                         
                         ForEach(readVM.showPickLanguage == "한글" ? readVM.krVersion : readVM.engVersion, id: \.self) { version in
                             Button {
+                                readVM.currentLanguage = readVM.showPickLanguage
                                 readVM.currentVersion = version
                                 readVM.showPickLanguage = ""
                                 showingLanguagePicker = false
@@ -465,6 +473,27 @@ struct ReadView: View {
         }
         
         return chapterCount
+    }
+    
+    func currentBook(book: String) -> String {
+        
+        var bookname: String?
+        
+        if readVM.currentPart == "old" {
+            if readVM.currentLanguage == "한글" {
+                bookname = OldTestament(rawValue: readVM.currentBook)?.korDescription()
+            } else if readVM.currentLanguage == "English" {
+                bookname = OldTestament(rawValue: readVM.currentBook)?.rawValue
+            }
+        } else {
+            if readVM.currentLanguage == "한글" {
+                bookname = NewTestament(rawValue: readVM.currentBook)?.korDescription()
+            } else if readVM.currentLanguage == "English" {
+                bookname = NewTestament(rawValue: readVM.currentBook)?.rawValue
+            }
+        }
+        
+        return bookname!
     }
 }
 

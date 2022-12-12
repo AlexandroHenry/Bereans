@@ -9,8 +9,8 @@ import Foundation
 import Combine
 
 final class ModelData: ObservableObject {
-    @Published var krv: [Bible] = load("KRV.json")
-    @Published var niv: [Bible] = load("en_niv.json")
+    @Published var krv: [Bible] = load("krv.json")
+    @Published var niv: [Bible] = load("niv.json")
 }
 
 func load<T: Decodable>(_ filename: String) -> T {

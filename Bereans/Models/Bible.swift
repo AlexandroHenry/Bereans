@@ -8,7 +8,6 @@
 import Foundation
 
 struct Bible: Codable, Hashable {
-    
     var book: String
     var type: String
     var version: String
