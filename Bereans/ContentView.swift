@@ -9,8 +9,12 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        MainView()
-            .ignoresSafeArea(.container, edges: .top)
+        GeometryReader { proxy in
+            let bottomEdge = proxy.safeAreaInsets.bottom
+            
+            MainView(bottomEdge: (bottomEdge == 0 ? 15: bottomEdge))
+                .ignoresSafeArea(.all, edges: .bottom)
+        }
     }
 }
 

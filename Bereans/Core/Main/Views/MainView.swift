@@ -9,43 +9,37 @@ import SwiftUI
 
 struct MainView: View {
     
-    @StateObject private var mainVM = MainViewModel()
+    @State var currentTab = "Read"
+    
+    var bottomEdge: CGFloat
+    
+    init(bottomEdge: CGFloat) {
+        UITabBar.appearance().isHidden = true
+        self.bottomEdge = bottomEdge
+    }
+    
+    @State var hideBar = false
     
     var body: some View {
-        GeometryReader {
-            let safeArea = $0.safeAreaInsets
-            let size = $0.size
+        TabView(selection: $currentTab) {
+            Text("Home")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.primary.opacity(0.05))
+                .tag("Home")
             
-            TabView(selection: $mainVM.selectedTab) {
-                Text("\(mainVM.selectedTab) View")
-                    .tabItem {
-                        Label("Home", systemImage: "house")
-                    }
-                    .tag("Home")
-                
-                Text("\(mainVM.selectedTab) View")
-                    .tabItem {
-                        Label("Notification", systemImage: "bell")
-                    }
-                    .tag("Notification")
-                
-                ReadView(safeArea: safeArea, size: size)
-                    .tabItem {
-                        Label("Read", systemImage: "book")
-                    }
-                    .tag("Read")
-                
-                Text("\(mainVM.selectedTab) View")
-                    .tabItem {
-                        Label("Settings", systemImage: "gear")
-                    }
-                    .tag("Settings")
-            }
-            .onAppear() {
-                UITabBar.appearance().barTintColor = .black
-            }
-            .accentColor(.pink)
+            ReadView(hideTab: $hideBar, bottomEdge: bottomEdge)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.primary.opacity(0.05))
+                .tag("Read")
         }
+        .overlay(
+            VStack {
+                
+                CustomTabBar(currentTab: $currentTab, bottomEdge: bottomEdge)
+            }
+                .offset(y: hideBar ? (15 + 35 + bottomEdge) : 0)
+            ,alignment: .bottom
+        )
     }
 }
 

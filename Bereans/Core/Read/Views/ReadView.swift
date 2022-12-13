@@ -12,14 +12,14 @@ struct ReadView: View {
     @EnvironmentObject var modelData: ModelData
     @StateObject var readVM = ReadViewModel()
     
-    var safeArea: EdgeInsets
-    var size: CGSize
+    @Binding var hideTab: Bool
+    var bottomEdge: CGFloat
     
-    @State private var showingBookPicker = false
-    @State private var showingLanguagePicker = false
+    @State var offset: CGFloat = 0
+    @State var lastOffset: CGFloat = 0
     
-    @State private var chapNum: Int?
-    @State private var selectingBook: String?
+    @State private var draggedOffset = CGSize.zero
+    private static let topId = "topIdHere"
     
     var filteredBible: [Bible] {
         switch readVM.currentVersion {
@@ -37,32 +37,34 @@ struct ReadView: View {
             }
         }
     }
-    
-    // MARK: Dragging Variables
-    @State private var draggedOffset = CGSize.zero
-    
-    // MARK: When ChapterNumber Changed, ScrollView Will Be Dragged to Top Of It
-    private static let topId = "topIdHere"
-    
+
     var body: some View {
         ZStack {
-            
             ScrollViewReader { proxyReader in
-                
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack {
-                        bibleChapterView()
-                            .id(Self.topId)
-                            .padding(.top, 80)
-                            .padding(.bottom, 100)
-                            .padding(.horizontal, 10)
+                    
+                    VStack(alignment: .leading, spacing: 20) {
+                        
+                        HStack {
+                            Spacer()
+                            Text("\(currentBook(book: readVM.currentBook)) \(readVM.currentChapter)")
+                                .font(.system(size: 40))
+                                .multilineTextAlignment(.center)
+                                .padding(.bottom, 40)
+                            Spacer()
+                        }
+                        .padding(.top, 100)
+                        
+                        ForEach(filteredBible, id: \.self) { verse in
+                            VerseView(bible: verse)
+                        }
                     }
+                    .id(Self.topId)
                     .onChange(of: self.chapNum, perform: { newValue in
                         withAnimation {
                             proxyReader.scrollTo(Self.topId, anchor: .top)
                         }
                     })
-                    // MARK: When Drag, move to prev or next chapter : To Do
                     .offset(x: self.draggedOffset.width)
                     .gesture(
                         DragGesture()
@@ -85,54 +87,96 @@ struct ReadView: View {
                                 
                             }
                     )
+                    .overlay(
+                    
+                        GeometryReader { proxy -> Color in
+                            let minY = proxy.frame(in: .named("SCROLL")).minY
+                            let durationOffset: CGFloat = 35
+                            
+                            DispatchQueue.main.async {
+                                
+                                if offset < 0 && -minY > (lastOffset + durationOffset) {
+                                    withAnimation(.easeOut.speed(1.5)) {
+                                        hideTab = true
+                                    }
+                                    lastOffset = -offset
+                                }
+                                
+                                if minY > offset && -minY < (lastOffset - durationOffset) {
+                                    
+                                    // Showing tab and updating last offset...
+                                    withAnimation(.easeOut.speed(1.5)) {
+                                        hideTab = false
+                                    }
+                                    
+                                    lastOffset = -offset
+                                }
+                                
+                                self.offset = minY
+                            }
+                            return Color.clear
+                        }
+                    )
+                    .padding()
+                    .padding(.bottom, 15 + bottomEdge + 35)
                 }
+                .coordinateSpace(name: "SCROLL")
             }
-            
             
             VStack {
                 headerView()
                 Spacer()
                 footerView()
-                    .padding(.bottom)
             }
-            
+        }
+    }
+    
+    @State private var showingBookPicker = false
+    @State private var showingLanguagePicker = false
+    @State private var showingSearch = false
+    
+    @State private var chapNum: Int?
+    @State private var selectingBook: String?
+    @State private var searchText = ""
+    
+    @State private var searchTextSubmitted = false
+    
+    var searchFilteredBible: [Bible] {
+        switch readVM.currentVersion {
+        case "개역한글":
+            return modelData.krv.filter { chapter in
+                chapter.word.contains(searchText) && searchTextSubmitted
+            }
+        case "New International Version":
+            return modelData.niv.filter { chapter in
+                chapter.word.contains(searchText) && searchTextSubmitted
+            }
+        default:
+            return modelData.krv.filter { chapter in
+                chapter.word.contains(searchText) && searchTextSubmitted
+            }
         }
     }
     
     @ViewBuilder
-    func bibleChapterView() -> some View {
-        VStack {
-            Text("\(currentBook(book: readVM.currentBook)) \(readVM.currentChapter)")
-                .font(.system(size: 40))
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 40)
+    func VerseView(bible: Bible) -> some View {
+        HStack(spacing: 15) {
             
-            VStack(spacing: 20) {
+            VStack {
+                Text(String(bible.verse))
+                    .font(.callout.bold())
+                    .foregroundColor(.gray)
+                    .padding(.leading, 5)
                 
-                ForEach(filteredBible, id: \.self) { chapter in
-                    HStack(spacing: 20) {
-
-                        VStack {
-                            Text("\(chapter.verse)")
-                                .font(.callout)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.gray)
-
-                            Spacer()
-                        }
-
-                        Text(chapter.word)
-                            .font(.system(size: readVM.fontSize))
-                            .foregroundColor(.primary)
-                            .lineSpacing(20)
-                            .fontWeight(.bold)
-
-                        Spacer()
-                    }
-                    .id(chapter)
-                }
+                Spacer()
             }
+            
+            Text(bible.word)
+                .font(.system(size: readVM.fontSize))
+                .foregroundColor(.primary)
+                .lineSpacing(20)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     @ViewBuilder
@@ -183,9 +227,91 @@ struct ReadView: View {
             footerButton(image: "arrow.left", purpose: "prevChapter")
             footerButton(image: "textformat.size.smaller", purpose: "reduceFontSize")
             footerButton(image: "magnifyingglass", purpose: "search")
+                .sheet(isPresented: $showingSearch) {
+                    searchView()
+                }
+            
             footerButton(image: "textformat.size.larger", purpose: "increaseFontSize")
             footerButton(image: "arrow.right", purpose: "nextChapter")
             Spacer()
+        }
+    }
+    
+    @ViewBuilder
+    func searchView() -> some View {
+        NavigationView {
+            VStack {
+                HStack {
+                    Text("성경 구절 검색")
+                        .font(.largeTitle.bold())
+                    Spacer()
+                    
+                    Button {
+                        showingSearch.toggle()
+                    } label: {
+                        
+                        Text("X")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                            .padding(15)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.leading, 8)
+                    
+                }
+                .padding(.top, 20)
+                
+                
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    
+                    TextField("원하는 성경 구절을 입력하세요", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .onSubmit {
+                            print(searchText)
+                            searchTextSubmitted.toggle()
+                        }
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 10)
+                .background(Color.primary.opacity(0.15))
+                .cornerRadius(10)
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    ForEach(searchFilteredBible, id: \.self) { verse in
+                        NavigationLink {
+                            
+                        } label: {
+                            HStack {
+                                
+                                Capsule()
+                                    .fill(Color.primary)
+                                    .frame(width: 3)
+                                
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(verse.word)
+                                        .font(.system(size: 20).bold())
+                                        .foregroundColor(.primary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("\(verse.book) \(verse.chapter)장 \(verse.verse)절")
+                                        .font(.system(size: 15).bold())
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding()
+                        }
+                    }
+                }
+                .padding(.vertical, 10)
+                
+            }
+            .padding()
         }
     }
     
@@ -203,7 +329,7 @@ struct ReadView: View {
                     readVM.fontSize -= 5
                 }
             case "search":
-                print("search Button Pressed")
+                showingSearch.toggle()
             case "increaseFontSize":
                 if readVM.fontSize < 40 {
                     readVM.fontSize += 5
@@ -409,50 +535,74 @@ struct ReadView: View {
     
     @ViewBuilder
     func languagePickView() -> some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(readVM.languageList, id: \.self) { language in
-                    HStack {
-                        Text(language)
-                            .font(.system(size: 25).bold())
-                            
-                        Spacer()
-                        
-                        Image(systemName: readVM.showPickLanguage == language ? "chevron.down" : "chevron.right")
-                        
-                    }
-                    .foregroundColor(readVM.showPickLanguage == language ? .pink : .primary)
-                    .onTapGesture {
-                        withAnimation {
-                            if readVM.showPickLanguage == "" {
-                                readVM.showPickLanguage = language
-                            } else if readVM.showPickLanguage != "" && readVM.showPickLanguage != language {
-                                readVM.showPickLanguage = language
-                            } else if readVM.showPickLanguage == language {
-                                readVM.showPickLanguage = ""
-                            }
-                        }
-                    }
+        VStack {
+            HStack {
+                Text("언어 및 번역본")
+                    .font(.title.bold())
+                Spacer()
+                
+                Button {
+                    showingLanguagePicker.toggle()
+                } label: {
                     
-                    if readVM.showPickLanguage == language {
-                        
-                        ForEach(readVM.showPickLanguage == "한글" ? readVM.krVersion : readVM.engVersion, id: \.self) { version in
-                            Button {
-                                readVM.currentLanguage = readVM.showPickLanguage
-                                readVM.currentVersion = version
-                                readVM.showPickLanguage = ""
-                                showingLanguagePicker = false
-                            } label : {
-                                HStack {
-                                    Text(version)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                }
+                    Text("X")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.primary)
+                        .padding(15)
+                        .background(Color.gray.opacity(0.2))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.leading, 8)
+                
+            }
+            .padding(.top, 20)
+            
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 20) {
+                    ForEach(readVM.languageList, id: \.self) { language in
+                        HStack {
+                            Text(language)
+                                .font(.system(size: 20).bold())
                                 
+                            Spacer()
+                            
+                            Image(systemName: readVM.showPickLanguage == language ? "chevron.down" : "chevron.right")
+                            
+                        }
+                        .foregroundColor(readVM.showPickLanguage == language ? .pink : .primary)
+                        .onTapGesture {
+                            withAnimation {
+                                if readVM.showPickLanguage == "" {
+                                    readVM.showPickLanguage = language
+                                } else if readVM.showPickLanguage != "" && readVM.showPickLanguage != language {
+                                    readVM.showPickLanguage = language
+                                } else if readVM.showPickLanguage == language {
+                                    readVM.showPickLanguage = ""
+                                }
                             }
                         }
+                        
+                        if readVM.showPickLanguage == language {
+                            
+                            ForEach(readVM.showPickLanguage == "한글" ? readVM.krVersion : readVM.engVersion, id: \.self) { version in
+                                Button {
+                                    readVM.currentLanguage = readVM.showPickLanguage
+                                    readVM.currentVersion = version
+                                    readVM.showPickLanguage = ""
+                                    showingLanguagePicker = false
+                                } label : {
+                                    HStack {
+                                        Text(version)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        
                     }
-                    
                 }
             }
         }
@@ -474,6 +624,14 @@ struct ReadView: View {
         
         return chapterCount
     }
+    
+//    func searchWordBook(book: String) -> String{
+//
+//
+//
+//
+//        return bookname
+//    }
     
     func currentBook(book: String) -> String {
         
@@ -499,28 +657,6 @@ struct ReadView: View {
 
 struct ReadView_Previews: PreviewProvider {
     static var previews: some View {
-        MainView()
-            .environmentObject(ModelData())
-    }
-}
-
-
-struct ReadBottomButton: View {
-    
-    @State var image: String
-    
-    var body: some View {
-        Button {
-            
-        } label: {
-            Image(systemName: image)
-                .padding(10)
-                .font(.system(size: 20).bold())
-                .foregroundColor(.pink)
-        }
-        .background(.primary)
-        .buttonStyle(.bordered)
-        .clipShape(Circle())
-        .shadow(radius: 20)
+        ContentView()
     }
 }
